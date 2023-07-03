@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 
 class Pertemuan14Screen extends StatefulWidget {
   const Pertemuan14Screen({Key? key}) : super(key: key);
@@ -9,6 +8,7 @@ class Pertemuan14Screen extends StatefulWidget {
 }
 
 class _Pertemuan14ScreenState extends State<Pertemuan14Screen> {
+  DateTime _date = DateTime.now();
   DateTimeRange? _dateRange;
   TextEditingController? _time;
 
@@ -16,40 +16,72 @@ class _Pertemuan14ScreenState extends State<Pertemuan14Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pertemuan 14'),
+        title: const Text('Pertemuan14'),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // DatePicker
             Row(
               children: [
-                Text('Tanggal:'),
-                SizedBox(width: 10),
+                const Text('Tanggal:'),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      var res = await showDateRangePicker(
-                        context: context,
-                        firstDate: DateTime(1999),
-                        lastDate: DateTime(2250),
-                      );
-
-                      if (res != null) {
-                        setState(() {
-                          _dateRange = res;
-                        });
-                      }
+                  child: InputDatePickerFormField(
+                    initialDate: _date,
+                    firstDate: DateTime(1998),
+                    lastDate: DateTime(2250),
+                    onDateSubmitted: (date) {
+                      setState(() {
+                        _date = date;
+                        print(_date);
+                      });
                     },
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        initialValue: _dateRange != null
-                            ? '${_dateRange!.start} - ${_dateRange!.end}'
-                            : '',
-                        decoration: InputDecoration(
-                          hintText: 'Pilih Tanggal',
-                        ),
-                      ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    var res = await showDatePicker(
+                      context: context,
+                      initialDate: _date,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2090),
+                    );
+
+                    if (res != null) {
+                      setState(() {
+                        _date = res;
+                        _dateRange =
+                            null; // Menghapus rentang waktu saat memilih tanggal baru
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.date_range),
+                ),
+              ],
+            ),
+
+            ListTile(
+              title: const Text('Tanggal Terpilih'),
+              subtitle: Text(
+                  _date.toString().split(' ')[0]), // Hanya menampilkan tanggal
+            ),
+
+            const Divider(),
+            Row(
+              children: [
+                const Text('Rentang Tanggal:'),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    enabled: false,
+                    decoration:
+                        const InputDecoration(labelText: 'Rentang Tanggal'),
+                    controller: TextEditingController(
+                      text: _dateRange != null
+                          ? '${_dateRange!.start.toString().split(' ')[0]} - ${_dateRange!.end.toString().split(' ')[0]}'
+                          : '',
                     ),
                   ),
                 ),
@@ -57,38 +89,54 @@ class _Pertemuan14ScreenState extends State<Pertemuan14Screen> {
                   onPressed: () async {
                     var res = await showDateRangePicker(
                       context: context,
-                      firstDate: DateTime(1999),
-                      lastDate: DateTime(2250),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2500),
                     );
 
                     if (res != null) {
                       setState(() {
                         _dateRange = res;
+                        _time =
+                            null; // Menghapus nilai waktu saat memilih rentang tanggal baru
                       });
                     }
                   },
-                  icon: Icon(Icons.date_range),
+                  icon: const Icon(Icons.calendar_today),
                 ),
               ],
             ),
-            ListTile(
-              title: Text('Tanggal terpilih'),
-              subtitle: Text(
-                _dateRange != null
-                    ? '${_dateRange!.start} - ${_dateRange!.end}'
-                    : 'Belum dipilih',
+
+            if (_dateRange != null)
+              ListTile(
+                title: const Text('Rentang Tanggal Terpilih'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (int i = 0;
+                        i <=
+                            _dateRange!.end
+                                .difference(_dateRange!.start)
+                                .inDays;
+                        i++)
+                      Text((_dateRange!.start.add(Duration(days: i)))
+                          .toString()
+                          .split(' ')[0]),
+                  ],
+                ),
               ),
-            ),
-            Divider(),
+
+            const Divider(),
+
+            // Time Picker
             Row(
               children: [
-                Text('Jam: '),
-                SizedBox(width: 10,),
+                const Text('Jam:'),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     enabled: false,
                     controller: _time,
-                    decoration: InputDecoration(labelText: 'Jam'),
+                    decoration: const InputDecoration(labelText: 'Jam'),
                   ),
                 ),
                 IconButton(
@@ -97,13 +145,15 @@ class _Pertemuan14ScreenState extends State<Pertemuan14Screen> {
                       context: context,
                       initialTime: TimeOfDay.now(),
                     );
+
                     if (res != null) {
                       setState(() {
-                        _time = TextEditingController(text: res.format(context));
+                        _time =
+                            TextEditingController(text: res.format(context));
                       });
                     }
                   },
-                  icon: Icon(Icons.timer),
+                  icon: const Icon(Icons.timer),
                 ),
               ],
             ),
